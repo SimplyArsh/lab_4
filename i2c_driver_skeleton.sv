@@ -353,8 +353,8 @@ module i2c_driver_new(
 					(At all other points, `acked` should remain unchanged.)
 					*/
 					
-					if (bit_cnt == 0 || subbit == 2) begin
-						acked_d = sda_out;
+					if (bit_cnt == 0 && subbit == 2) begin
+						acked_d = ~sda_out;
 					else
 						acked_d = acked; 
 					
