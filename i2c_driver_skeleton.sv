@@ -97,6 +97,12 @@ module i2c_driver_new(
 		*/
 		
 		// YOUR CODE HERE
+		subbit <= subbit_d;
+		polling_clk_sr <= polling_clk;
+		state_sr <= state;
+		
+		state <= next_state;
+		
 		
 		commands_done <= commands_done_d;
 		current_command <= next_command;
@@ -129,6 +135,11 @@ module i2c_driver_new(
 		- Otherwise, we should increment subbit, resetting to 0 when
 		  subbit is 3 (the max value).
 		*/
+		
+		if state == IDLE || current_command == IDLE_CMD || subbit_d == 2'b11
+			subbit_d == 0;
+		else
+			subbit_d = subbit_d + 1;
 		
 		// YOUR CODE HERE
 		
@@ -230,6 +241,9 @@ module i2c_driver_new(
 					  it's determined based on the current subbit!
 					*/
 					
+					sda_write_enable = 1;
+					sda_in = ( subbit == 0 || subbit == 1) ? 1 : 0;
+					
 					// YOUR CODE HERE
 				
 					if (subbit == 3) begin
@@ -246,6 +260,14 @@ module i2c_driver_new(
 						*/
 						
 						// YOUR CODE HERE
+						next_command = commands[commands_done + 1]; 
+						commands_done_d = commands_done + 1; 
+						if (commands[commands_done + 1] == READ_BYTE 
+								commands[commands_done + 1] == WRITE_BYTE)
+							bit_cnt_d = 8;
+						else
+							bit_cnt_d = bit_cnt; 
+							
 						
 					end else begin
 						next_command = current_command;
@@ -268,6 +290,9 @@ module i2c_driver_new(
 					  
 					Hint: This one is VERY similar to the START command!
 					*/
+
+					sda_write_enable = 1;
+					sda_in = ( subbit == 2 || subbit == 3) ? 1 : 0;
 					
 					// YOUR CODE HERE
 				
@@ -287,6 +312,13 @@ module i2c_driver_new(
 						*/
 						
 						// YOUR CODE HERE
+						next_command = commands[commands_done + 1]; 
+						commands_done_d = commands_done + 1; 
+						if (commands[commands_done + 1] == READ_BYTE 
+								commands[commands_done + 1] == WRITE_BYTE)
+							bit_cnt_d = 8;
+						else
+							bit_cnt_d = bit_cnt; 
 						
 					end else begin
 						next_command = current_command;
@@ -307,6 +339,12 @@ module i2c_driver_new(
 					in `current_byte_to_write`, write a bit to `sda_in`.
 					*/
 					
+					if (bit_cnt == 0) begin
+						sda_write_enable = 0;
+					end begin
+						sda_write_enable = 1;
+						sda_in = current_byte_to_write[bit_cnt];
+					end
 					// YOUR CODE HERE
 					
 					/* TODO(1.3.2):
@@ -314,6 +352,11 @@ module i2c_driver_new(
 					Namely, when `bit_cnt` is 0, we must read the ACK bit on subbit 2.
 					(At all other points, `acked` should remain unchanged.)
 					*/
+					
+					if (bit_cnt == 0 || subbit == 2) begin
+						acked_d = sda_out;
+					else
+						acked_d = acked; 
 					
 					// YOUR CODE HERE
 					
