@@ -341,7 +341,7 @@ module i2c_driver_new(
 					
 					if (bit_cnt == 0) begin
 						sda_write_enable = 0;
-					end begin
+					end else begin
 						sda_write_enable = 1;
 						sda_in = current_byte_to_write[bit_cnt];
 					end
@@ -377,7 +377,26 @@ module i2c_driver_new(
 							*/
 							
 							// YOUR CODE HERE
+							commands_done_d = commands_done + 1;
+							next_command = commands[commands_done + 1];
 							
+							if (acked == 0) begin
+								// the previous portion was successfully transmitted
+								if (commands[commands_done + 1] == READ_BYTE 
+									commands[commands_done + 1] == WRITE_BYTE)
+									bit_cnt_d = 8;
+							  else
+									bit_cnt_d = bit_cnt;
+								failed_d = failed;
+								
+							end else begin
+								
+								bit_cnt_d = 0;
+								next_command = STOPl
+								failed_d = 1; 
+							
+							end
+
 						end else begin
 							// Here, if the subbit is 3 but we aren't out of bits to write,
 							// we decrement the bit count and change nothing else.
@@ -386,14 +405,19 @@ module i2c_driver_new(
 							commands_done_d = commands_done;
 							next_command = current_command;
 							failed_d = failed;
+							
 						end
+						
 					end else begin
+					
 						bit_cnt_d = bit_cnt;
 						commands_done_d = commands_done;
 						next_command = current_command;
 						bytes_written_d = bytes_written;
 						failed_d = failed;
+						
 					end
+					
 				end
 				
 				READ_BYTE_ACK: begin
@@ -412,6 +436,13 @@ module i2c_driver_new(
 					
 					Hint: It's basically the opposite of what we did when writing!
 					*/
+					
+					if (bit_cnt == 0) begin
+						sda_write_enable = 1;
+					end begin
+						sda_write_enable = 0;
+						sda_in = current_byte_to_read[bit_cnt];
+					end
 
 					// YOUR CODE HERE
 					
@@ -437,11 +468,13 @@ module i2c_driver_new(
 							next_command = current_command;
 						end
 					end else begin
+					
 						bit_cnt_d = bit_cnt;
 						commands_done_d = commands_done;
 						next_command = current_command;
 						bytes_read_d = bytes_read;
 					end
+					
 				end
 				
 				READ_BYTE_NACK: begin
